@@ -83,6 +83,12 @@ const SectionEditor = ({ sections, navItemId, editor }: SectionEditorProps) => {
         </div>
       ))}
 
+      {sections.length === 0 && (
+        <p className="text-xs italic py-2" style={{ color: "#7A6B5A" }}>
+          No sections yet. Add one to create a mega menu for this nav item.
+        </p>
+      )}
+
       <button
         onClick={() => editor.addSection(navItemId)}
         className="flex items-center gap-1 text-xs font-semibold hover:opacity-80 transition-opacity"
