@@ -19,6 +19,11 @@ const Login = () => {
     setLoading(true);
 
     if (isSignUp) {
+      if (!email.trim().toLowerCase().endsWith("@zuper.co")) {
+        setError("Only @zuper.co email addresses can register.");
+        setLoading(false);
+        return;
+      }
       const { error } = await supabase.auth.signUp({
         email,
         password,
