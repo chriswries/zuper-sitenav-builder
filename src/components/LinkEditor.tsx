@@ -67,6 +67,12 @@ const LinkEditor = ({ links, sectionId, editor }: LinkEditorProps) => {
         </div>
       ))}
 
+      {links.length === 0 && (
+        <p className="text-xs italic py-1" style={{ color: "#7A6B5A" }}>
+          No links yet.
+        </p>
+      )}
+
       <button
         onClick={() => editor.addLink(sectionId)}
         className="flex items-center gap-1 text-xs font-medium hover:opacity-80 transition-opacity"
