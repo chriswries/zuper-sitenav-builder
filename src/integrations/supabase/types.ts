@@ -14,7 +14,106 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      mega_menu_links: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          label: string
+          section_id: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          label: string
+          section_id: string
+          sort_order?: number
+          url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          label?: string
+          section_id?: string
+          sort_order?: number
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mega_menu_links_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "mega_menu_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mega_menu_sections: {
+        Row: {
+          created_at: string
+          id: string
+          nav_item_id: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nav_item_id: string
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nav_item_id?: string
+          sort_order?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mega_menu_sections_nav_item_id_fkey"
+            columns: ["nav_item_id"]
+            isOneToOne: false
+            referencedRelation: "nav_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nav_items: {
+        Row: {
+          created_at: string
+          id: string
+          is_cta: boolean
+          label: string
+          sort_order: number
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_cta?: boolean
+          label: string
+          sort_order?: number
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_cta?: boolean
+          label?: string
+          sort_order?: number
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
