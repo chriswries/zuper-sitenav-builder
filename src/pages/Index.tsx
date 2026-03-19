@@ -1,9 +1,13 @@
 import NavPreview from "@/components/NavPreview";
+import NavEditor from "@/components/NavEditor";
 import { useNavData } from "@/hooks/useNavData";
+import { useNavEditor } from "@/hooks/useNavEditor";
 import { useAuth } from "@/contexts/AuthContext";
+import { Toaster } from "@/components/ui/toaster";
 
 const Index = () => {
-  const { navItems, loading } = useNavData();
+  const { navItems, loading, refetch } = useNavData();
+  const editor = useNavEditor(refetch);
   const { signOut, user } = useAuth();
 
   return (
@@ -11,23 +15,12 @@ const Index = () => {
       {!loading && <NavPreview navItems={navItems} />}
 
       {/* Body content */}
-      <div className="flex flex-col items-center justify-center pt-32 px-8">
-        <p className="text-center text-sm max-w-md" style={{ color: '#7A6B5A' }}>
-          Hover over nav items to preview mega menus. Use the edit panel below to make changes.
+      <div className="flex flex-col items-center pt-32 px-8 pb-16">
+        <p className="text-center text-sm max-w-md mb-8" style={{ color: '#7A6B5A' }}>
+          Hover over nav items to preview mega menus. Edit navigation below.
         </p>
 
-        {/* Edit panel placeholder */}
-        <div
-          className="mt-12 w-full max-w-3xl rounded-2xl p-8 text-center"
-          style={{
-            background: '#FDF6ED',
-            border: '2px dashed rgba(255,107,26,0.2)',
-          }}
-        >
-          <p className="text-sm font-medium" style={{ color: '#7A6B5A' }}>
-            Edit panel — coming in next prompt.
-          </p>
-        </div>
+        {!loading && <NavEditor navItems={navItems} editor={editor} />}
 
         {/* Logout */}
         <div className="mt-8 flex items-center gap-3">
@@ -43,6 +36,8 @@ const Index = () => {
           </button>
         </div>
       </div>
+
+      <Toaster />
     </div>
   );
 };
