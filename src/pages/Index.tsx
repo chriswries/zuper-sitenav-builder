@@ -1,13 +1,16 @@
 import NavPreview from "@/components/NavPreview";
 import NavEditor from "@/components/NavEditor";
+import SavedNavsLibrary from "@/components/SavedNavsLibrary";
 import { useNavData } from "@/hooks/useNavData";
 import { useNavEditor } from "@/hooks/useNavEditor";
+import { useSavedNavs } from "@/hooks/useSavedNavs";
 import { useAuth } from "@/contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 
 const Index = () => {
   const { navItems, loading, refetch } = useNavData();
   const editor = useNavEditor(refetch);
+  const { savedNavs, saveNav, deleteNav, renameNav, loadNav } = useSavedNavs(refetch);
   const { signOut, user } = useAuth();
 
   return (
