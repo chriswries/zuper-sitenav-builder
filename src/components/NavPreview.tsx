@@ -43,6 +43,14 @@ const NavPreview = ({ navItems }: NavPreviewProps) => {
     }, 200);
   }, [clearTimers]);
 
+  // Close mega menu on click outside
+  useEffect(() => {
+    if (!activeItemId) return;
+    const handleClick = () => setActiveItemId(null);
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [activeItemId]);
+
   useEffect(() => {
     return () => clearTimers();
   }, [clearTimers]);
@@ -87,6 +95,7 @@ const NavPreview = ({ navItems }: NavPreviewProps) => {
                     color: activeItemId === item.id ? '#FF6B1A' : '#2D1E0E',
                     padding: '4px 0',
                   }}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   {item.label}
                 </button>
@@ -146,10 +155,13 @@ const NavPreview = ({ navItems }: NavPreviewProps) => {
       {activeItem && activeItem.sections.length > 0 && (
         <div
           className="fixed z-40 left-1/2 -translate-x-1/2"
-          style={{ top: 64 }}
+          style={{ top: 56 }}
           onMouseEnter={handleMenuEnter}
           onMouseLeave={handleMenuLeave}
+          onClick={(e) => e.stopPropagation()}
         >
+          {/* Invisible bridge to prevent flicker between nav item and dropdown */}
+          <div style={{ height: 8 }} />
           <div
             style={{
               background: '#FDF6ED',

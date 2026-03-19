@@ -33,6 +33,17 @@ export function useNavData() {
 
   useEffect(() => {
     fetchNav();
+
+    const channel = supabase
+      .channel("nav-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "nav_items" }, () => fetchNav())
+      .on("postgres_changes", { event: "*", schema: "public", table: "mega_menu_sections" }, () => fetchNav())
+      .on("postgres_changes", { event: "*", schema: "public", table: "mega_menu_links" }, () => fetchNav())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchNav]);
 
   return { navItems, loading, refetch: fetchNav };
