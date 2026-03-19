@@ -37,6 +37,14 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Branding label */}
+      <div
+        className="fixed bottom-3 right-4 text-xs select-none"
+        style={{ color: '#C4B8A8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+      >
+        Zuper Nav Prototyper
+      </div>
+
       <Toaster />
     </div>
   );
