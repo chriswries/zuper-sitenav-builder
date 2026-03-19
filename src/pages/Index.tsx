@@ -25,6 +25,19 @@ const Index = () => {
 
         {!loading && <NavEditor navItems={navItems} editor={editor} />}
 
+        {!loading && (
+          <div className="mt-4 w-full max-w-4xl mx-auto">
+            <SavedNavsLibrary
+              navItems={navItems}
+              savedNavs={savedNavs}
+              onSave={saveNav}
+              onLoad={loadNav}
+              onDelete={deleteNav}
+              onRename={renameNav}
+            />
+          </div>
+        )}
+
         {/* Logout */}
         <div className="mt-8 flex items-center gap-3">
           <span className="text-xs" style={{ color: '#7A6B5A' }}>
