@@ -1,0 +1,1 @@
+ALTER TABLE public.nav_items ADD COLUMN mega_menu_layout varchar(20) NOT NULL DEFAULT 'horizontal';

@@ -90,6 +90,7 @@ export type Database = {
           id: string
           is_cta: boolean
           label: string
+          mega_menu_layout: string
           sort_order: number
           updated_at: string
           url: string | null
@@ -99,6 +100,7 @@ export type Database = {
           id?: string
           is_cta?: boolean
           label: string
+          mega_menu_layout?: string
           sort_order?: number
           updated_at?: string
           url?: string | null
@@ -108,6 +110,7 @@ export type Database = {
           id?: string
           is_cta?: boolean
           label?: string
+          mega_menu_layout?: string
           sort_order?: number
           updated_at?: string
           url?: string | null
