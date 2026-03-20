@@ -54,12 +54,12 @@ export function useSavedNavs(refetch: () => void, setPauseRealtime: (p: boolean)
   }, [user, fetchSavedNavs]);
 
   const updateNav = useCallback(async (id: string, snapshot: NavItemWithSections[]) => {
+    const navName = savedNavs.find((n) => n.id === id)?.name ?? "navigation";
     await supabase.from("saved_navs").update({
       snapshot: JSON.parse(JSON.stringify(snapshot)),
     } as any).eq("id", id);
     await fetchSavedNavs();
-    const nav = savedNavs.find((n) => n.id === id);
-    toast({ title: `Updated: ${nav?.name ?? "navigation"}`, duration: 1500 });
+    toast({ title: `Updated: ${navName}`, duration: 1500 });
   }, [fetchSavedNavs, savedNavs]);
 
   const deleteNav = useCallback(async (id: string) => {
