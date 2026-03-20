@@ -4,6 +4,7 @@ export interface NavItem {
   url: string | null;
   sort_order: number;
   is_cta: boolean;
+  mega_menu_layout: 'horizontal' | 'vertical';
   created_at: string;
   updated_at: string;
 }
