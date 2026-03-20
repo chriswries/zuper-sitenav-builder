@@ -13,10 +13,15 @@ export interface SavedNav {
   updated_at: string;
 }
 
-export function useSavedNavs(refetch: () => void) {
+export function useSavedNavs(refetch: () => void, setPauseRealtime: (p: boolean) => void) {
   const [savedNavs, setSavedNavs] = useState<SavedNav[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeNavId, setActiveNavId] = useState<string | null>(null);
   const { user } = useAuth();
+
+  const activeNavName = activeNavId
+    ? savedNavs.find((n) => n.id === activeNavId)?.name ?? null
+    : null;
 
   const fetchSavedNavs = useCallback(async () => {
     const { data } = await supabase
@@ -37,20 +42,32 @@ export function useSavedNavs(refetch: () => void) {
   }, [fetchSavedNavs]);
 
   const saveNav = useCallback(async (name: string, snapshot: NavItemWithSections[]) => {
-    await supabase.from("saved_navs").insert({
+    const { data } = await supabase.from("saved_navs").insert({
       name,
       snapshot: JSON.parse(JSON.stringify(snapshot)),
       created_by: user?.id ?? null,
-    } as any);
+    } as any).select("id").single();
+    const newId = data?.id ?? null;
+    if (newId) setActiveNavId(newId);
     await fetchSavedNavs();
     toast({ title: "Saved to library", duration: 1500 });
   }, [user, fetchSavedNavs]);
 
+  const updateNav = useCallback(async (id: string, snapshot: NavItemWithSections[]) => {
+    await supabase.from("saved_navs").update({
+      snapshot: JSON.parse(JSON.stringify(snapshot)),
+    } as any).eq("id", id);
+    await fetchSavedNavs();
+    const nav = savedNavs.find((n) => n.id === id);
+    toast({ title: `Updated: ${nav?.name ?? "navigation"}`, duration: 1500 });
+  }, [fetchSavedNavs, savedNavs]);
+
   const deleteNav = useCallback(async (id: string) => {
     await supabase.from("saved_navs").delete().eq("id", id);
+    if (activeNavId === id) setActiveNavId(null);
     await fetchSavedNavs();
     toast({ title: "Deleted", duration: 1500 });
-  }, [fetchSavedNavs]);
+  }, [fetchSavedNavs, activeNavId]);
 
   const renameNav = useCallback(async (id: string, name: string) => {
     await supabase.from("saved_navs").update({ name } as any).eq("id", id);
@@ -58,56 +75,65 @@ export function useSavedNavs(refetch: () => void) {
     toast({ title: "Saved", duration: 1500 });
   }, [fetchSavedNavs]);
 
-  const loadNav = useCallback(async (snapshot: NavItemWithSections[]) => {
-    // Delete all existing data in order
-    await supabase.from("mega_menu_links").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await supabase.from("mega_menu_sections").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await supabase.from("nav_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  const loadNav = useCallback(async (id: string, snapshot: NavItemWithSections[]) => {
+    setPauseRealtime(true);
+    try {
+      // Delete all existing data in order
+      await supabase.from("mega_menu_links").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("mega_menu_sections").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("nav_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
-    // Insert from snapshot with new UUIDs
-    for (const item of snapshot) {
-      const { data: newItem } = await supabase
-        .from("nav_items")
-        .insert({
-          label: item.label,
-          url: item.url,
-          sort_order: item.sort_order,
-          is_cta: item.is_cta,
-          mega_menu_layout: item.mega_menu_layout || 'horizontal',
-        })
-        .select("id")
-        .single();
-
-      if (!newItem) continue;
-
-      for (const section of item.sections) {
-        const { data: newSection } = await supabase
-          .from("mega_menu_sections")
+      // Insert from snapshot with new UUIDs
+      for (const item of snapshot) {
+        const { data: newItem } = await supabase
+          .from("nav_items")
           .insert({
-            nav_item_id: newItem.id,
-            title: section.title,
-            sort_order: section.sort_order,
+            label: item.label,
+            url: item.url,
+            sort_order: item.sort_order,
+            is_cta: item.is_cta,
+            mega_menu_layout: item.mega_menu_layout || 'horizontal',
           })
           .select("id")
           .single();
 
-        if (!newSection || !section.links?.length) continue;
+        if (!newItem) continue;
 
-        await supabase.from("mega_menu_links").insert(
-          section.links.map((link) => ({
-            section_id: newSection.id,
-            label: link.label,
-            url: link.url,
-            description: link.description,
-            sort_order: link.sort_order,
-          }))
-        );
+        for (const section of item.sections) {
+          const { data: newSection } = await supabase
+            .from("mega_menu_sections")
+            .insert({
+              nav_item_id: newItem.id,
+              title: section.title,
+              sort_order: section.sort_order,
+            })
+            .select("id")
+            .single();
+
+          if (!newSection || !section.links?.length) continue;
+
+          await supabase.from("mega_menu_links").insert(
+            section.links.map((link) => ({
+              section_id: newSection.id,
+              label: link.label,
+              url: link.url,
+              description: link.description,
+              sort_order: link.sort_order,
+            }))
+          );
+        }
       }
+    } finally {
+      setPauseRealtime(false);
     }
 
     refetch();
+    setActiveNavId(id);
     toast({ title: "Navigation loaded", duration: 1500 });
-  }, [refetch]);
+  }, [refetch, setPauseRealtime]);
 
-  return { savedNavs, loading, saveNav, deleteNav, renameNav, loadNav };
+  return {
+    savedNavs, loading, saveNav, updateNav, deleteNav, renameNav, loadNav,
+    activeNavId, activeNavName, setActiveNavId,
+  };
 }

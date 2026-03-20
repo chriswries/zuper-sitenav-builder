@@ -1,10 +1,11 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { NavItem, MegaMenuSection, MegaMenuLink, NavItemWithSections } from "@/types/nav";
 
 export function useNavData() {
   const [navItems, setNavItems] = useState<NavItemWithSections[]>([]);
   const [loading, setLoading] = useState(true);
+  const pauseRealtimeRef = useRef(false);
 
   const fetchNav = useCallback(async () => {
     const [itemsRes, sectionsRes, linksRes] = await Promise.all([
@@ -31,14 +32,24 @@ export function useNavData() {
     setLoading(false);
   }, []);
 
+  const setPauseRealtime = useCallback((paused: boolean) => {
+    pauseRealtimeRef.current = paused;
+  }, []);
+
   useEffect(() => {
     fetchNav();
 
+    const handleChange = () => {
+      if (!pauseRealtimeRef.current) {
+        fetchNav();
+      }
+    };
+
     const channel = supabase
       .channel("nav-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "nav_items" }, () => fetchNav())
-      .on("postgres_changes", { event: "*", schema: "public", table: "mega_menu_sections" }, () => fetchNav())
-      .on("postgres_changes", { event: "*", schema: "public", table: "mega_menu_links" }, () => fetchNav())
+      .on("postgres_changes", { event: "*", schema: "public", table: "nav_items" }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "mega_menu_sections" }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "mega_menu_links" }, handleChange)
       .subscribe();
 
     return () => {
@@ -46,5 +57,5 @@ export function useNavData() {
     };
   }, [fetchNav]);
 
-  return { navItems, loading, refetch: fetchNav };
+  return { navItems, loading, refetch: fetchNav, setPauseRealtime };
 }
