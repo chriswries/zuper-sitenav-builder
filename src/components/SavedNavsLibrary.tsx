@@ -18,7 +18,7 @@ interface SavedNavsLibraryProps {
 }
 
 const SavedNavsLibrary = ({
-  navItems, savedNavs, onSave, onLoad, onDelete, onRename,
+  navItems, savedNavs, onSave, onLoad, onDelete, onRename, onExport,
 }: SavedNavsLibraryProps) => {
   const [saveOpen, setSaveOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
