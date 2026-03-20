@@ -149,7 +149,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      load_nav_snapshot: { Args: { snapshot: Json }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
