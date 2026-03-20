@@ -10,20 +10,23 @@ import type { SavedNav } from "@/hooks/useSavedNavs";
 interface SavedNavsLibraryProps {
   navItems: NavItemWithSections[];
   savedNavs: SavedNav[];
+  activeNavId: string | null;
+  activeNavName: string | null;
   onSave: (name: string, snapshot: NavItemWithSections[]) => Promise<void>;
-  onLoad: (snapshot: NavItemWithSections[]) => Promise<void>;
+  onUpdate: (id: string, snapshot: NavItemWithSections[]) => Promise<void>;
+  onLoad: (id: string, snapshot: NavItemWithSections[]) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onRename: (id: string, name: string) => Promise<void>;
   onExport?: () => void;
 }
 
 const SavedNavsLibrary = ({
-  navItems, savedNavs, onSave, onLoad, onDelete, onRename, onExport,
+  navItems, savedNavs, activeNavId, activeNavName,
+  onSave, onUpdate, onLoad, onDelete, onRename, onExport,
 }: SavedNavsLibraryProps) => {
   const [saveOpen, setSaveOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [saveName, setSaveName] = useState("");
-  const [confirmLoad, setConfirmLoad] = useState<SavedNav | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const handleOpenSave = () => {
@@ -32,15 +35,20 @@ const SavedNavsLibrary = ({
     setSaveOpen(true);
   };
 
-  const handleSave = async () => {
+  const handleSaveNew = async () => {
     if (!saveName.trim()) return;
     await onSave(saveName.trim().slice(0, 100), navItems);
     setSaveOpen(false);
   };
 
+  const handleUpdate = async () => {
+    if (!activeNavId) return;
+    await onUpdate(activeNavId, navItems);
+    setSaveOpen(false);
+  };
+
   const handleLoad = async (nav: SavedNav) => {
-    await onLoad(nav.snapshot);
-    setConfirmLoad(null);
+    await onLoad(nav.id, nav.snapshot);
     setLibraryOpen(false);
   };
 
@@ -55,8 +63,13 @@ const SavedNavsLibrary = ({
 
   return (
     <>
-      {/* Buttons */}
-      <div className="flex items-center gap-2">
+      {/* Active nav indicator + buttons */}
+      <div className="flex items-center gap-3">
+        {activeNavName && (
+          <span className="text-xs" style={{ color: "#7A6B5A" }}>
+            Editing: <strong style={{ color: "#2D1E0E" }}>{activeNavName}</strong>
+          </span>
+        )}
         <button
           onClick={handleOpenSave}
           className="flex items-center gap-1 text-sm font-semibold hover:opacity-80 transition-opacity"
@@ -90,9 +103,37 @@ const SavedNavsLibrary = ({
               Save to Library
             </DialogTitle>
             <DialogDescription style={{ color: "#7A6B5A" }}>
-              Save the current navigation as a named snapshot.
+              {activeNavId
+                ? "Update the current saved nav or save as a new entry."
+                : "Save the current navigation as a named snapshot."}
             </DialogDescription>
           </DialogHeader>
+
+          {/* Update existing option */}
+          {activeNavId && activeNavName && (
+            <button
+              onClick={handleUpdate}
+              className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+              style={{
+                background: "rgba(255,107,26,0.08)",
+                border: "1px solid rgba(255,107,26,0.2)",
+                cursor: "pointer",
+                color: "#2D1E0E",
+              }}
+            >
+              Update "{activeNavName}"
+            </button>
+          )}
+
+          {/* Divider when both options present */}
+          {activeNavId && (
+            <div className="flex items-center gap-2 my-1">
+              <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.08)" }} />
+              <span className="text-xs" style={{ color: "#7A6B5A" }}>or save as new</span>
+              <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.08)" }} />
+            </div>
+          )}
+
           <input
             value={saveName}
             onChange={(e) => setSaveName(e.target.value)}
@@ -102,10 +143,10 @@ const SavedNavsLibrary = ({
               background: "#F5F0E8", border: "1px solid rgba(255,107,26,0.15)",
               color: "#2D1E0E", fontFamily: "'Plus Jakarta Sans', sans-serif",
             }}
-            onKeyDown={(e) => e.key === "Enter" && handleSave()}
-            autoFocus
+            onKeyDown={(e) => e.key === "Enter" && handleSaveNew()}
+            autoFocus={!activeNavId}
           />
-          <div className="flex justify-end gap-2 mt-2">
+          <div className="flex justify-end gap-2 mt-1">
             <button
               onClick={() => setSaveOpen(false)}
               className="text-sm px-3 py-1.5 rounded-lg"
@@ -114,12 +155,12 @@ const SavedNavsLibrary = ({
               Cancel
             </button>
             <button
-              onClick={handleSave}
+              onClick={handleSaveNew}
               disabled={!saveName.trim()}
               className="text-sm px-4 py-1.5 rounded-lg font-semibold disabled:opacity-40"
               style={{ background: "#FF6B1A", color: "#fff", border: "none", cursor: "pointer" }}
             >
-              Save
+              Save as New
             </button>
           </div>
         </DialogContent>
@@ -133,7 +174,7 @@ const SavedNavsLibrary = ({
               Saved Navigations
             </DialogTitle>
             <DialogDescription style={{ color: "#7A6B5A" }}>
-              Open a saved navigation to replace the current one.
+              Click Open to load a saved navigation.
             </DialogDescription>
           </DialogHeader>
 
@@ -143,80 +184,65 @@ const SavedNavsLibrary = ({
             </p>
           ) : (
             <div className="space-y-1 max-h-80 overflow-y-auto">
-              {savedNavs.map((nav) => (
-                <div
-                  key={nav.id}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg"
-                  style={{ background: "#F5F0E8" }}
-                >
-                  {/* Name (inline editable) */}
-                  <InlineInput
-                    value={nav.name}
-                    onSave={(v) => onRename(nav.id, v)}
-                    className="flex-1 font-semibold text-sm"
-                  />
-                  {/* Date */}
-                  <span className="text-xs whitespace-nowrap" style={{ color: "#7A6B5A" }}>
-                    {fmtDate(nav.updated_at)}
-                  </span>
+              {savedNavs.map((nav) => {
+                const isActive = nav.id === activeNavId;
+                return (
+                  <div
+                    key={nav.id}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                    style={{
+                      background: isActive ? "rgba(255,107,26,0.08)" : "#F5F0E8",
+                      borderLeft: isActive ? "3px solid #FF6B1A" : "3px solid transparent",
+                    }}
+                  >
+                    <InlineInput
+                      value={nav.name}
+                      onSave={(v) => onRename(nav.id, v)}
+                      className="flex-1 font-semibold text-sm"
+                    />
+                    <span className="text-xs whitespace-nowrap" style={{ color: "#7A6B5A" }}>
+                      {fmtDate(nav.updated_at)}
+                    </span>
 
-                  {/* Open */}
-                  {confirmLoad?.id === nav.id ? (
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleLoad(nav)}
-                        className="text-xs font-semibold px-2 py-1 rounded"
-                        style={{ background: "#FF6B1A", color: "#fff", border: "none", cursor: "pointer" }}
-                      >
-                        Replace
-                      </button>
-                      <button
-                        onClick={() => setConfirmLoad(null)}
-                        className="text-xs px-2 py-1 rounded"
-                        style={{ background: "none", border: "1px solid #ccc", cursor: "pointer", color: "#7A6B5A" }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
+                    {/* Open — immediate, no confirmation */}
                     <button
-                      onClick={() => setConfirmLoad(nav)}
+                      onClick={() => handleLoad(nav)}
                       className="text-xs font-semibold px-2 py-1 rounded hover:opacity-80 transition-opacity"
                       style={{ background: "#FF6B1A", color: "#fff", border: "none", cursor: "pointer" }}
                     >
                       Open
                     </button>
-                  )}
 
-                  {/* Delete */}
-                  {confirmDeleteId === nav.id ? (
-                    <div className="flex items-center gap-1">
+                    {/* Delete with confirmation */}
+                    {confirmDeleteId === nav.id ? (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleDelete(nav.id)}
+                          className="text-xs font-semibold px-2 py-1 rounded"
+                          style={{ background: "#ef4444", color: "#fff", border: "none", cursor: "pointer" }}
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="text-xs px-2 py-1 rounded"
+                          style={{ background: "none", border: "1px solid #ccc", cursor: "pointer", color: "#7A6B5A" }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
                       <button
-                        onClick={() => handleDelete(nav.id)}
-                        className="text-xs font-semibold px-2 py-1 rounded"
-                        style={{ background: "#ef4444", color: "#fff", border: "none", cursor: "pointer" }}
+                        onClick={() => setConfirmDeleteId(nav.id)}
+                        className="p-1 hover:text-red-500 transition-colors"
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "#7A6B5A" }}
                       >
-                        Delete
+                        <Trash2 size={14} />
                       </button>
-                      <button
-                        onClick={() => setConfirmDeleteId(null)}
-                        className="text-xs px-2 py-1 rounded"
-                        style={{ background: "none", border: "1px solid #ccc", cursor: "pointer", color: "#7A6B5A" }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setConfirmDeleteId(nav.id)}
-                      className="p-1 hover:text-red-500 transition-colors"
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "#7A6B5A" }}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  )}
-                </div>
-              ))}
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </DialogContent>

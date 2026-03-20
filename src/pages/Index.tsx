@@ -9,9 +9,12 @@ import { downloadNavHtml } from "@/utils/exportNavHtml";
 import { Toaster } from "@/components/ui/toaster";
 
 const Index = () => {
-  const { navItems, loading, refetch } = useNavData();
+  const { navItems, loading, refetch, setPauseRealtime } = useNavData();
   const editor = useNavEditor(refetch);
-  const { savedNavs, saveNav, deleteNav, renameNav, loadNav } = useSavedNavs(refetch);
+  const {
+    savedNavs, saveNav, updateNav, deleteNav, renameNav, loadNav,
+    activeNavId, activeNavName,
+  } = useSavedNavs(refetch, setPauseRealtime);
   const { signOut, user } = useAuth();
 
   return (
@@ -31,7 +34,10 @@ const Index = () => {
             <SavedNavsLibrary
               navItems={navItems}
               savedNavs={savedNavs}
+              activeNavId={activeNavId}
+              activeNavName={activeNavName}
               onSave={saveNav}
+              onUpdate={updateNav}
               onLoad={loadNav}
               onDelete={deleteNav}
               onRename={renameNav}
