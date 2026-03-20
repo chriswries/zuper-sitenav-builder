@@ -5,6 +5,7 @@ import { useNavData } from "@/hooks/useNavData";
 import { useNavEditor } from "@/hooks/useNavEditor";
 import { useSavedNavs } from "@/hooks/useSavedNavs";
 import { useAuth } from "@/contexts/AuthContext";
+import { downloadNavHtml } from "@/utils/exportNavHtml";
 import { Toaster } from "@/components/ui/toaster";
 
 const Index = () => {
@@ -34,6 +35,7 @@ const Index = () => {
               onLoad={loadNav}
               onDelete={deleteNav}
               onRename={renameNav}
+              onExport={() => downloadNavHtml(navItems)}
             />
           </div>
         )}

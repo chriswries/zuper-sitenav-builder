@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Save, FolderOpen, Trash2 } from "lucide-react";
+import { Save, FolderOpen, Trash2, Download } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -14,10 +14,11 @@ interface SavedNavsLibraryProps {
   onLoad: (snapshot: NavItemWithSections[]) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onRename: (id: string, name: string) => Promise<void>;
+  onExport?: () => void;
 }
 
 const SavedNavsLibrary = ({
-  navItems, savedNavs, onSave, onLoad, onDelete, onRename,
+  navItems, savedNavs, onSave, onLoad, onDelete, onRename, onExport,
 }: SavedNavsLibraryProps) => {
   const [saveOpen, setSaveOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -70,6 +71,15 @@ const SavedNavsLibrary = ({
         >
           <FolderOpen size={16} /> Open from Library
         </button>
+        {onExport && (
+          <button
+            onClick={onExport}
+            className="flex items-center gap-1 text-sm font-semibold hover:opacity-80 transition-opacity"
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#FF6B1A" }}
+          >
+            <Download size={16} /> Export HTML
+          </button>
+        )}
       </div>
 
       {/* Save dialog */}
