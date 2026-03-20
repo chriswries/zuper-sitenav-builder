@@ -14,6 +14,7 @@ interface SavedNavsLibraryProps {
   onLoad: (snapshot: NavItemWithSections[]) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onRename: (id: string, name: string) => Promise<void>;
+  onExport?: () => void;
 }
 
 const SavedNavsLibrary = ({
