@@ -71,6 +71,15 @@ const SavedNavsLibrary = ({
         >
           <FolderOpen size={16} /> Open from Library
         </button>
+        {onExport && (
+          <button
+            onClick={onExport}
+            className="flex items-center gap-1 text-sm font-semibold hover:opacity-80 transition-opacity"
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#FF6B1A" }}
+          >
+            <Download size={16} /> Export HTML
+          </button>
+        )}
       </div>
 
       {/* Save dialog */}

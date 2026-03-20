@@ -35,6 +35,7 @@ const Index = () => {
               onLoad={loadNav}
               onDelete={deleteNav}
               onRename={renameNav}
+              onExport={() => downloadNavHtml(navItems)}
             />
           </div>
         )}
