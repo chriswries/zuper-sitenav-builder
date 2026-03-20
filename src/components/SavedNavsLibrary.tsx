@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Save, FolderOpen, Trash2 } from "lucide-react";
+import { Save, FolderOpen, Trash2, Download } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
