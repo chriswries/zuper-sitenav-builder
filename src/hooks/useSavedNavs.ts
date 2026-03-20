@@ -78,56 +78,14 @@ export function useSavedNavs(refetch: () => void, setPauseRealtime: (p: boolean)
   const loadNav = useCallback(async (id: string, snapshot: NavItemWithSections[]) => {
     setPauseRealtime(true);
     try {
-      // Delete all existing data in order
-      await supabase.from("mega_menu_links").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-      await supabase.from("mega_menu_sections").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-      await supabase.from("nav_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-
-      // Insert from snapshot with new UUIDs
-      for (const item of snapshot) {
-        const { data: newItem } = await supabase
-          .from("nav_items")
-          .insert({
-            label: item.label,
-            url: item.url,
-            sort_order: item.sort_order,
-            is_cta: item.is_cta,
-            mega_menu_layout: item.mega_menu_layout || 'horizontal',
-          })
-          .select("id")
-          .single();
-
-        if (!newItem) continue;
-
-        for (const section of item.sections) {
-          const { data: newSection } = await supabase
-            .from("mega_menu_sections")
-            .insert({
-              nav_item_id: newItem.id,
-              title: section.title,
-              sort_order: section.sort_order,
-            })
-            .select("id")
-            .single();
-
-          if (!newSection || !section.links?.length) continue;
-
-          await supabase.from("mega_menu_links").insert(
-            section.links.map((link) => ({
-              section_id: newSection.id,
-              label: link.label,
-              url: link.url,
-              description: link.description,
-              sort_order: link.sort_order,
-            }))
-          );
-        }
-      }
+      await supabase.rpc("load_nav_snapshot", {
+        snapshot: JSON.parse(JSON.stringify(snapshot)),
+      });
     } finally {
       setPauseRealtime(false);
     }
 
-    refetch();
+    await refetch();
     setActiveNavId(id);
     toast({ title: "Navigation loaded", duration: 1500 });
   }, [refetch, setPauseRealtime]);
