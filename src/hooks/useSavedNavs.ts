@@ -73,6 +73,7 @@ export function useSavedNavs(refetch: () => void) {
           url: item.url,
           sort_order: item.sort_order,
           is_cta: item.is_cta,
+          mega_menu_layout: item.mega_menu_layout || 'horizontal',
         })
         .select("id")
         .single();

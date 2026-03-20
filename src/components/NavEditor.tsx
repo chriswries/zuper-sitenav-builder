@@ -88,6 +88,27 @@ const NavEditor = ({ navItems, editor }: NavEditorProps) => {
                 CTA
               </label>
 
+              {/* Layout toggle */}
+              {!item.is_cta && (
+                <div className="flex items-center rounded-md overflow-hidden border" style={{ borderColor: 'rgba(255,107,26,0.2)' }}>
+                  {(['horizontal', 'vertical'] as const).map((layout) => (
+                    <button
+                      key={layout}
+                      onClick={() => editor.updateNavItem(item.id, { mega_menu_layout: layout })}
+                      className="text-[10px] font-semibold px-2 py-0.5 transition-colors"
+                      style={{
+                        background: item.mega_menu_layout === layout ? '#FF6B1A' : 'transparent',
+                        color: item.mega_menu_layout === layout ? '#fff' : '#7A6B5A',
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {layout === 'horizontal' ? 'H' : 'V'}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {/* Expand mega menu */}
               {!item.is_cta && (
                 <button

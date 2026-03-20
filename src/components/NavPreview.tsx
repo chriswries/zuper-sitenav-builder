@@ -169,7 +169,7 @@ const NavPreview = ({ navItems }: NavPreviewProps) => {
               boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
             }}
           >
-            <MegaMenu sections={activeItem.sections} />
+            <MegaMenu sections={activeItem.sections} layout={activeItem.mega_menu_layout} />
           </div>
         </div>
       )}

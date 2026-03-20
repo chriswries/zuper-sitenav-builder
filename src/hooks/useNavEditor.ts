@@ -22,7 +22,7 @@ export function useNavEditor(refetch: () => void) {
   }, [refetch, showSaved]);
 
   const updateNavItem = useCallback(
-    async (id: string, updates: { label?: string; url?: string | null; is_cta?: boolean }) => {
+    async (id: string, updates: { label?: string; url?: string | null; is_cta?: boolean; mega_menu_layout?: 'horizontal' | 'vertical' }) => {
       await supabase.from("nav_items").update(updates).eq("id", id);
       refetch();
       showSaved();
